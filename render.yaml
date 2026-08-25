@@ -1,0 +1,16 @@
+services:
+  - type: cron
+    name: daily-linkedin-agent
+    env: python
+    schedule: "0 9 * * *"
+    buildCommand: "pip install -r requirements.txt && python manage.py migrate"
+    startCommand: "python -m myapp.service.agent"
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false

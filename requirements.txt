@@ -1,0 +1,12 @@
+django>=5.0
+requests
+python-dotenv
+langchain
+langgraph
+langchain-groq
+groq
+pydantic
+pillow
+dj-database-url
+psycopg2-binary
+gunicorn
