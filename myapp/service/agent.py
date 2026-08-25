@@ -300,47 +300,59 @@ def draw_code_snippet(draw, x, y, code_text, font):
             curr_x += tok_width
         curr_y += 26
 
-def generate_infographic_cheatsheet(topic: str, draft_text: str, output_path: str = "generated_image.jpg") -> str:
+def generate_handwritten_cheatsheet(topic: str, draft_text: str, output_path: str = "generated_image.jpg") -> str:
     try:
         details = generate_infographic_details(topic, draft_text)
-        img = Image.new("RGB", (1200, 1600), color=(253, 251, 246))
+        
+        # 1200 x 1800 high-res canvas (Cream Paper Aesthetic)
+        img = Image.new("RGB", (1200, 1800), color=(254, 252, 248))
         draw = ImageDraw.Draw(img)
 
+        # Draw grid paper lines (30px spacing)
+        for y in range(0, 1800, 30):
+            draw.line([(0, y), (1200, y)], fill=(238, 233, 222), width=1)
+        for x in range(0, 1200, 30):
+            draw.line([(x, 0), (x, 1800)], fill=(238, 233, 222), width=1)
+
+        # Handwritten Fonts
         try:
-            title_font = ImageFont.truetype("arialbd.ttf", 34)
-            heading_font = ImageFont.truetype("arialbd.ttf", 24)
-            body_font = ImageFont.truetype("arial.ttf", 20)
-            code_font = ImageFont.truetype("consola.ttf", 18)
+            title_font = ImageFont.truetype("comicbd.ttf", 34)
+            heading_font = ImageFont.truetype("comicbd.ttf", 22)
+            body_font = ImageFont.truetype("comic.ttf", 19)
+            small_font = ImageFont.truetype("comic.ttf", 15)
+            code_font = ImageFont.truetype("consola.ttf", 16)
         except Exception:
-            title_font = heading_font = body_font = code_font = ImageFont.load_default()
+            title_font = heading_font = body_font = small_font = code_font = ImageFont.load_default()
 
-        # Paper border frame
-        draw.rectangle([20, 20, 1180, 1580], outline=(200, 195, 185), width=3)
+        # Top Left Title with Purple Underline
+        raw_title = details.title if (hasattr(details, 'title') and details.title) else topic
+        clean_title = textwrap.shorten(raw_title, width=42, placeholder="...")
+        draw.text((40, 35), clean_title, fill=(30, 30, 30), font=title_font)
+        draw.line([(40, 78), (580, 78)], fill=(120, 60, 180), width=3)
 
-        # 1. Header Box
-        draw.rectangle([40, 40, 1160, 130], fill=(240, 235, 225), outline=(100, 100, 100), width=2)
-        draw.text((60, 65), f"CHEAT SHEET: {details.title}", fill=(30, 30, 30), font=title_font)
-
-        # 2. Yellow Sticky Note (Objectives)
-        draw.rectangle([40, 150, 580, 380], fill=(255, 248, 195), outline=(210, 190, 100), width=2)
-        draw.rounded_rectangle([60, 165, 250, 200], radius=6, fill=(230, 170, 50))
-        draw.text((75, 172), "KEY OBJECTIVES", fill=(255, 255, 255), font=heading_font)
+        # Top Right Sticky Note: GOAL (Yellow with Drop Shadow)
+        draw.rectangle([665, 35, 1165, 235], fill=(225, 215, 180))
+        draw.rectangle([660, 30, 1160, 230], fill=(255, 248, 185), outline=(220, 195, 80), width=2)
+        draw.text((680, 45), "GOAL", fill=(160, 80, 0), font=heading_font)
+        draw.line([(680, 72), (740, 72)], fill=(160, 80, 0), width=2)
         
-        obj_str = "\n".join([f"• {obj}" for obj in details.objectives[:3]])
-        draw.text((60, 215), obj_str, fill=(50, 50, 50), font=body_font)
+        objs = details.objectives if (hasattr(details, 'objectives') and details.objectives) else ["Decouple blocking ops", "Non-blocking API response"]
+        goals_text = "\n".join([f"• {g}" for g in objs[:3]])
+        draw.text((680, 85), goals_text, fill=(50, 50, 50), font=body_font)
 
-        # 3. Pink Sticky Note (Metrics / Complexity)
-        draw.rectangle([620, 150, 1160, 380], fill=(255, 230, 235), outline=(220, 140, 160), width=2)
-        draw.rounded_rectangle([640, 165, 920, 200], radius=6, fill=(220, 80, 110))
-        draw.text((655, 172), "METRICS & COMPLEXITY", fill=(255, 255, 255), font=heading_font)
+        # Middle Right Sticky Note: COMPLEXITY (Green with Drop Shadow)
+        draw.rectangle([665, 265, 1165, 465], fill=(210, 230, 210))
+        draw.rectangle([660, 260, 1160, 460], fill=(230, 248, 230), outline=(130, 195, 130), width=2)
+        draw.text((680, 275), "COMPLEXITY", fill=(30, 110, 40), font=heading_font)
+        draw.line([(680, 302), (810, 302)], fill=(30, 110, 40), width=2)
         
-        metrics_str = f"• Time Complexity: {details.time_complexity}\n• Space Complexity: {details.space_complexity}\n• Scale Strategy: Async Worker Pool\n• Verification: Unit Tests / Admin Logs"
-        draw.text((640, 215), metrics_str, fill=(50, 50, 50), font=body_font)
+        time_c = details.time_complexity if (hasattr(details, 'time_complexity') and details.time_complexity) else "O(1) Async"
+        space_c = details.space_complexity if (hasattr(details, 'space_complexity') and details.space_complexity) else "O(1) Memory"
+        comp_text = f"Time Complexity : {time_c}\n(Each element processed once)\n\nSpace Complexity : {space_c}\n(Uses fixed memory resources)"
+        draw.text((680, 315), comp_text, fill=(40, 40, 40), font=body_font)
 
-        # 4. Code Block Window (Dark Theme)
-        draw.rectangle([40, 400, 1160, 780], fill=(35, 39, 46), outline=(20, 20, 20), width=2)
-        draw.rounded_rectangle([60, 415, 320, 445], radius=6, fill=(60, 130, 220))
-        draw.text((75, 420), "Implementation Snippet", fill=(255, 255, 255), font=heading_font)
+        # Top Left Code Box (Purple Outline)
+        draw.rectangle([40, 100, 630, 500], fill=(250, 250, 255), outline=(120, 80, 180), width=2)
         
         code_text = ""
         if "```" in draft_text:
@@ -350,43 +362,101 @@ def generate_infographic_cheatsheet(topic: str, draft_text: str, output_path: st
                 lines = raw_code.split("\n")
                 if lines and lines[0].lower() in ["python", "bash", "json"]:
                     lines = lines[1:]
-                code_text = "\n".join(lines[:10])
+                code_text = "\n".join(lines[:12])
 
         if not code_text:
-            code_text = "def task_handler(request):\n    # Async background task dispatch\n    task.delay(request.user.id)\n    return JsonResponse({'status': 'queued'})"
+            code_text = "def process_request(data):\n    # Core execution handler\n    result = execute_task(data)\n    return result"
 
-        draw_code_snippet(draw, 60, 465, code_text, code_font)
+        draw_code_snippet(draw, 55, 115, code_text, code_font)
 
-        # 5. Step-by-Step Execution Flow
-        draw.rectangle([40, 800, 1160, 1150], fill=(245, 245, 252), outline=(180, 180, 210), width=2)
-        draw.rounded_rectangle([60, 815, 310, 845], radius=6, fill=(80, 80, 180))
-        draw.text((75, 820), "WORKFLOW STAGES", fill=(255, 255, 255), font=heading_font)
+        # Section Header: HOW IT WORKS?
+        draw.text((40, 520), "HOW IT WORKS ?", fill=(120, 40, 40), font=heading_font)
+        draw.line([(40, 548), (220, 548)], fill=(120, 40, 40), width=2)
+
+        # 6-Box Workflow Grid (2 rows x 3 cols)
+        steps = details.workflow_steps if (hasattr(details, 'workflow_steps') and details.workflow_steps) else [
+            "Initialize request params",
+            "Validate authentication token",
+            "Dispatch payload to queue",
+            "Process task in background",
+            "Log execution metrics",
+            "Return success response"
+        ]
         
-        y_offset = 865
-        for idx, step in enumerate(details.workflow_steps[:4], 1):
-            draw.text((60, y_offset), f"Step {idx} -> {step}", fill=(40, 40, 40), font=body_font)
-            y_offset += 60
+        box_w, box_h = 360, 180
+        col_gap, row_gap = 20, 20
+        start_x, start_y = 40, 565
 
-        # 6. Green Callout Card (Takeaways)
-        draw.rectangle([40, 1170, 1160, 1550], fill=(232, 247, 232), outline=(130, 195, 130), width=2)
-        draw.rounded_rectangle([60, 1185, 360, 1215], radius=6, fill=(50, 150, 60))
-        draw.text((75, 1190), "PRACTICAL TAKEAWAYS", fill=(255, 255, 255), font=heading_font)
+        for idx in range(min(6, len(steps))):
+            r = idx // 3
+            c = idx % 3
+            bx = start_x + c * (box_w + col_gap)
+            by = start_y + r * (box_h + row_gap)
+
+            draw.rectangle([bx, by, bx + box_w, by + box_h], fill=(255, 255, 255), outline=(180, 180, 190), width=2)
+            draw.ellipse([bx + 12, by + 12, bx + 42, by + 42], fill=(240, 240, 250), outline=(80, 80, 120), width=2)
+            draw.text((bx + 21, by + 15), str(idx + 1), fill=(40, 40, 100), font=heading_font)
+            
+            step_desc = steps[idx]
+            wrapped_step = "\n".join(textwrap.wrap(step_desc, width=26))
+            draw.text((bx + 50, by + 15), wrapped_step, fill=(40, 40, 40), font=body_font)
+
+        # Section Header: DRY RUN TABLE (Bottom Left)
+        draw.text((40, 990), "DRY RUN :", fill=(30, 30, 30), font=heading_font)
         
-        takeaways_str = "\n".join([f"• {t}" for t in details.takeaways[:3]])
-        draw.text((60, 1245), takeaways_str, fill=(40, 40, 40), font=body_font)
+        # Table Header
+        draw.rectangle([40, 1025, 630, 1065], fill=(235, 240, 245), outline=(100, 100, 100), width=2)
+        draw.text((55, 1033), "Step", fill=(30, 30, 30), font=heading_font)
+        draw.text((140, 1033), "Left Val", fill=(30, 30, 30), font=heading_font)
+        draw.text((280, 1033), "Right Val", fill=(30, 30, 30), font=heading_font)
+        draw.text((440, 1033), "Action Result", fill=(30, 30, 30), font=heading_font)
+
+        sample_rows = [
+            ("1", "req_id", "valid", "Match [✓]"),
+            ("2", "token", "valid", "Match [✓]"),
+            ("3", "payload", "processed", "Match [✓]"),
+            ("4", "result", "complete", "Success [✓]")
+        ]
+        
+        ty = 1065
+        for r_idx, (st, lv, rv, act) in enumerate(sample_rows):
+            draw.rectangle([40, ty, 630, ty + 40], fill=(255, 255, 255), outline=(180, 180, 180), width=1)
+            draw.text((65, ty + 8), st, fill=(40, 40, 40), font=body_font)
+            draw.text((150, ty + 8), lv, fill=(40, 40, 40), font=body_font)
+            draw.text((290, ty + 8), rv, fill=(40, 40, 40), font=body_font)
+            color = (30, 120, 40) if "✓" in act or "Match" in act or "Success" in act else (180, 40, 40)
+            draw.text((450, ty + 8), act, fill=color, font=body_font)
+            ty += 40
+
+        # Pink Sticky Note Bottom Right: TAKEAWAYS
+        draw.rectangle([665, 1030, 1165, 1260], fill=(235, 210, 220))
+        draw.rectangle([660, 1025, 1160, 1255], fill=(255, 230, 238), outline=(220, 140, 160), width=2)
+        draw.text((680, 1040), "TAKEAWAYS", fill=(170, 30, 70), font=heading_font)
+        draw.line([(680, 1067), (790, 1067)], fill=(170, 30, 70), width=2)
+
+        tkaways = details.takeaways if (hasattr(details, 'takeaways') and details.takeaways) else ["Keep payloads light", "Ensure idempotency", "Monitor queues"]
+        takeaway_text = "\n".join([f"• {t}" for t in tkaways[:3]])
+        draw.text((680, 1080), takeaway_text, fill=(50, 50, 50), font=body_font)
+
+        # Purple Sticky Note Bottom Right: KEY CONCEPT Q&A
+        draw.rectangle([665, 1290, 1165, 1490], fill=(220, 210, 240))
+        draw.rectangle([660, 1285, 1160, 1485], fill=(238, 230, 255), outline=(160, 140, 210), width=2)
+        draw.text((680, 1300), "KEY CONCEPT", fill=(80, 40, 140), font=heading_font)
+        draw.line([(680, 1327), (810, 1327)], fill=(80, 40, 140), width=2)
+        draw.text((680, 1340), "When do we return False?\nWhen validation fails or a timeout occurs.\nThen terminate early to save compute.", fill=(50, 50, 50), font=body_font)
 
         img.save(output_path, quality=95)
-        print(f"100% Dynamic & Crisp Infographic cheat sheet generated: {output_path}")
+        print(f"Handwritten Cheat Sheet generated successfully: {output_path}")
         return output_path
     except Exception as e:
-        print(f"Infographic generation failed: {e}")
+        print(f"Handwritten cheat sheet generation error ({e})")
         return ""
 
 def image_node(state: TopicState) -> TopicState:
     topic = state.get("topic", "software development")
     draft_text = state.get("draft_text", "")
-    print("Generating 100% crisp, readable infographic cheat sheet image for topic:", topic)
-    image_path = generate_infographic_cheatsheet(topic, draft_text, "generated_image.jpg")
+    print("Generating 100% crisp, handwritten cheat sheet image on grid paper for topic:", topic)
+    image_path = generate_handwritten_cheatsheet(topic, draft_text, "generated_image.jpg")
     return {**state, "image_path": image_path}
 
 def send_final_telegram_node(state: TopicState) -> TopicState:
