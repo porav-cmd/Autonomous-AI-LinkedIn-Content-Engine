@@ -22,8 +22,13 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Run Database Migrations
+        run: |
+          python manage.py migrate
+
       - name: Run Agent Pipeline
         env:
+          PYTHONUNBUFFERED: "1"
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
