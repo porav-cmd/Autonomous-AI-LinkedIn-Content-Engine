@@ -16,7 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from myapp.views import dashboard_view, save_settings_view, trigger_generate_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', dashboard_view, name='dashboard'),
+    path('settings/save/', save_settings_view, name='save_settings'),
+    path('generate/', trigger_generate_view, name='trigger_generate'),
 ]
