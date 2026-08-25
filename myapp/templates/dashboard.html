@@ -1,304 +1,617 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFlow AI - Autonomous Developer Content Engine</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
-
-    <!-- Top Navigation Header -->
-    <nav class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchStep(3)">
-            <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg">
-                <i class="fa-solid fa-robot text-xl"></i>
-            </div>
-            <div>
-                <h1 class="text-xl font-extrabold text-white tracking-wide">DevFlow AI</h1>
-                <p class="text-xs text-slate-400">Autonomous Developer Content Platform</p>
-            </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="flex items-center space-x-2 bg-slate-900 p-1.5 rounded-xl border border-slate-700 text-sm font-medium">
-            <button onclick="switchStep(1)" id="tabStep1" class="px-4 py-2 rounded-lg transition text-slate-400 hover:text-white">
-                <i class="fa-solid fa-user-plus mr-1.5"></i> 1. Account
-            </button>
-            <button onclick="switchStep(2)" id="tabStep2" class="px-4 py-2 rounded-lg transition text-slate-400 hover:text-white">
-                <i class="fa-solid fa-key mr-1.5"></i> 2. Integrations
-            </button>
-            <button onclick="switchStep(3)" id="tabStep3" class="px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm">
-                <i class="fa-solid fa-layer-group mr-1.5"></i> 3. Dashboard
-            </button>
-        </div>
-
-        <div class="flex items-center space-x-3">
-            <button id="generateBtn" onclick="triggerPostGeneration()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg transition flex items-center space-x-2">
-                <i class="fa-solid fa-bolt" id="btnIcon"></i>
-                <span id="btnText">Generate Post Now</span>
-            </button>
-            <a href="/admin/" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3.5 py-2.5 rounded-xl font-medium text-xs transition flex items-center gap-1.5">
-                <i class="fa-solid fa-user-shield"></i> Admin
-            </a>
-        </div>
-    </nav>
-
-    <!-- Main Container -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-
-        <!-- Notification Banner -->
-        {% if messages %}
-        <div class="mb-6 space-y-2">
-            {% for message in messages %}
-            <div class="p-4 rounded-xl text-sm font-medium border flex items-center justify-between {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20{% else %}bg-amber-500/10 text-amber-400 border-amber-500/20{% endif %}">
-                <span class="flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check"></i> {{ message }}
-                </span>
-                <button onclick="this.parentElement.remove()" class="text-xs opacity-60 hover:opacity-100">&times;</button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- STEP 1: LANDING & ACCOUNT SETUP -->
-        <div id="step1View" class="hidden max-w-2xl mx-auto py-8">
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-xl">
-                <div class="text-center mb-8">
-                    <div class="inline-flex p-3 bg-indigo-500/10 text-indigo-400 rounded-2xl mb-3 border border-indigo-500/20">
-                        <i class="fa-solid fa-rocket text-2xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-extrabold text-white">Step 1: Get Started with DevFlow</h2>
-                    <p class="text-sm text-slate-400 mt-1">Connect your Gmail and GitHub username to start analyzing repositories.</p>
-                </div>
-
-                <form action="{% url 'save_settings' %}" method="POST" class="space-y-6">
-                    {% csrf_token %}
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Gmail / Email Address</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-envelope absolute left-4 top-3.5 text-slate-500 text-sm"></i>
-                            <input type="email" name="user_email" value="{{ profile.user.email }}" placeholder="developer@gmail.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition" required>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">GitHub Username</label>
-                        <div class="relative">
-                            <i class="fa-brands fa-github absolute left-4 top-3.5 text-slate-500 text-sm"></i>
-                            <input type="text" name="github_username" value="{{ profile.github_username }}" placeholder="porav-cmd" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition" required>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2">DevFlow will scan your public repositories to generate architecture posts.</p>
-                    </div>
-
-                    <div class="flex justify-end pt-2">
-                        <button type="button" onclick="switchStep(2)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-semibold text-sm transition flex items-center gap-2">
-                            Next: Setup Integrations <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- STEP 2: INTEGRATION VAULT (Telegram & Groq Keys) -->
-        <div id="step2View" class="hidden max-w-2xl mx-auto py-8">
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-xl">
-                <div class="text-center mb-8">
-                    <div class="inline-flex p-3 bg-purple-500/10 text-purple-400 rounded-2xl mb-3 border border-purple-500/20">
-                        <i class="fa-solid fa-key text-2xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-extrabold text-white">Step 2: Integration Vault</h2>
-                    <p class="text-sm text-slate-400 mt-1">Configure your Telegram Bot and Groq API Key for delivery & generation.</p>
-                </div>
-
-                <form action="{% url 'save_settings' %}" method="POST" class="space-y-5">
-                    {% csrf_token %}
-                    <input type="hidden" name="github_username" value="{{ profile.github_username }}">
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Telegram Bot Token</label>
-                        <div class="relative">
-                            <i class="fa-brands fa-telegram absolute left-4 top-3.5 text-slate-500 text-sm"></i>
-                            <input type="password" name="telegram_bot_token" value="{{ profile.telegram_bot_token|default:'' }}" placeholder="8686549844:AAEgB3UD..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Telegram Chat ID</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-comments absolute left-4 top-3.5 text-slate-500 text-sm"></i>
-                            <input type="text" name="telegram_chat_id" value="{{ profile.telegram_chat_id|default:'' }}" placeholder="1875595995" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Groq API Key</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-brain absolute left-4 top-3.5 text-slate-500 text-sm"></i>
-                            <input type="password" name="groq_api_key" value="{{ profile.groq_api_key|default:'' }}" placeholder="gsk_..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Infographic Cheat Sheet Theme</label>
-                        <select name="cheat_sheet_theme" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                            <option value="cream_grid" {% if profile.cheat_sheet_theme == 'cream_grid' %}selected{% endif %}>Cream Notebook Grid Paper</option>
-                            <option value="dark_ide" {% if profile.cheat_sheet_theme == 'dark_ide' %}selected{% endif %}>Dark IDE Poster</option>
-                        </select>
-                    </div>
-
-                    <div class="flex justify-between items-center pt-4">
-                        <button type="button" onclick="switchStep(1)" class="text-slate-400 hover:text-white text-sm font-medium">
-                            <i class="fa-solid fa-arrow-left mr-1"></i> Back
-                        </button>
-                        <button type="submit" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition">
-                            Save Credentials & Open Dashboard
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- STEP 3: MAIN DASHBOARD & POST HISTORY GALLERY -->
-        <div id="step3View" class="space-y-8">
-            
-            <!-- Stat Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-slate-800/80 backdrop-blur border border-slate-700/80 p-6 rounded-2xl shadow-sm">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Posts Generated</span>
-                        <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
-                            <i class="fa-solid fa-layer-group text-lg"></i>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-extrabold text-white">{{ total_posts }}</div>
-                    <p class="text-xs text-slate-500 mt-1">Saved in database & sent to Telegram</p>
-                </div>
-
-                <div class="bg-slate-800/80 backdrop-blur border border-slate-700/80 p-6 rounded-2xl shadow-sm">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Project Walkthroughs</span>
-                        <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
-                            <i class="fa-solid fa-code-branch text-lg"></i>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-extrabold text-white">{{ project_posts }}</div>
-                    <p class="text-xs text-slate-500 mt-1">GitHub repository code analysis</p>
-                </div>
-
-                <div class="bg-slate-800/80 backdrop-blur border border-slate-700/80 p-6 rounded-2xl shadow-sm">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">News & Tech Trends</span>
-                        <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg">
-                            <i class="fa-solid fa-newspaper text-lg"></i>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-extrabold text-white">{{ news_posts }}</div>
-                    <p class="text-xs text-slate-500 mt-1">HackerNews developer updates</p>
-                </div>
-            </div>
-
-            <!-- Post History & Gallery -->
-            <div class="space-y-6">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-photo-film text-indigo-400"></i> Generated Post History & Cheat Sheets
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-0.5">All drafts, metrics, and handwritten cheat sheet images</p>
-                    </div>
-                    <span class="text-xs bg-slate-800 text-slate-400 px-3 py-1.5 rounded-lg border border-slate-700">Showing last 15 posts</span>
-                </div>
-
-                <div class="grid grid-cols-1 gap-6">
-                    {% for post in posts %}
-                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-md hover:border-slate-600 transition">
-                        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
-                            <div class="flex items-center space-x-2">
-                                {% if post.post_type == 'Project' %}
-                                <span class="bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-500/20">
-                                    <i class="fa-solid fa-code mr-1"></i> Project
-                                </span>
-                                {% else %}
-                                <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">
-                                    <i class="fa-solid fa-newspaper mr-1"></i> News
-                                </span>
-                                {% endif %}
-                                <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1"></i> {{ post.date_posted }}</span>
-                            </div>
-                            <span class="text-xs text-slate-500 font-mono">ID: #{{ post.id }}</span>
-                        </div>
-
-                        <h3 class="text-lg font-bold text-slate-100 mb-3">{{ post.topic }}</h3>
-
-                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-4 text-xs text-slate-300 font-mono whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed">
-{{ post.final_text }}
-                        </div>
-
-                        {% if post.image_path %}
-                        <div class="flex items-center justify-between bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-                            <div class="flex items-center space-x-3">
-                                <div class="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg">
-                                    <i class="fa-solid fa-file-image text-xl"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-200">Handwritten Engineering Cheat Sheet</p>
-                                    <p class="text-xs text-slate-500 font-mono">{{ post.image_path }}</p>
-                                </div>
-                            </div>
-                            <span class="text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-3 py-1.5 rounded-lg font-medium">
-                                Delivered to Telegram
-                            </span>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% empty %}
-                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-12 text-center text-slate-400">
-                        <i class="fa-solid fa-inbox text-4xl mb-3 text-slate-500"></i>
-                        <p class="text-base font-semibold text-slate-300">No generated posts found in database yet.</p>
-                        <p class="text-xs text-slate-500 mt-1">Click "Generate Post Now" above to create your first post!</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Multi-Step Navigation & AJAX Script -->
-    <script>
-        function switchStep(stepNum) {
-            document.getElementById('step1View').classList.add('hidden');
-            document.getElementById('step2View').classList.add('hidden');
-            document.getElementById('step3View').classList.add('hidden');
-
-            document.getElementById('tabStep1').className = "px-4 py-2 rounded-lg transition text-slate-400 hover:text-white";
-            document.getElementById('tabStep2').className = "px-4 py-2 rounded-lg transition text-slate-400 hover:text-white";
-            document.getElementById('tabStep3').className = "px-4 py-2 rounded-lg transition text-slate-400 hover:text-white";
-
-            if (stepNum === 1) {
-                document.getElementById('step1View').classList.remove('hidden');
-                document.getElementById('tabStep1').className = "px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm";
-            } else if (stepNum === 2) {
-                document.getElementById('step2View').classList.remove('hidden');
-                document.getElementById('tabStep2').className = "px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm";
-            } else {
-                document.getElementById('step3View').classList.remove('hidden');
-                document.getElementById('tabStep3').className = "px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm";
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevFlow AI - Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config from Brand Anchors -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#95a4f0",
+                    "surface-tint": "#c0c1ff",
+                    "tertiary-container": "#00885d",
+                    "on-primary-fixed": "#07006c",
+                    "outline-variant": "#464554",
+                    "secondary": "#4cd7f6",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "secondary-fixed": "#acedff",
+                    "on-primary": "#1000a9",
+                    "inverse-surface": "#1f1f20",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-tertiary": "#003824",
+                    "on-secondary-fixed": "#001f26",
+                    "inverse-primary": "#494bd6",
+                    "surface-container-highest": "#313540",
+                    "on-secondary-container": "#00424e",
+                    "outline": "#908fa0",
+                    "surface-dim": "#0f131d",
+                    "on-background": "#2d2d2e",
+                    "surface": "#0f131d",
+                    "background": "#0f131d",
+                    "on-primary-container": "#0d0096",
+                    "primary-container": "#8083ff",
+                    "on-error": "#690005",
+                    "secondary-container": "#03b5d3",
+                    "error": "#ffb4ab",
+                    "surface-variant": "#313540",
+                    "on-secondary-fixed-variant": "#004e5c",
+                    "on-surface-variant": "#434055",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "surface-container-lowest": "#0a0e18",
+                    "secondary-fixed-dim": "#4cd7f6",
+                    "surface-container-low": "#171b26",
+                    "on-error-container": "#5c4e4c",
+                    "error-container": "#93000a",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "on-tertiary-container": "#000703",
+                    "inverse-on-surface": "#2c303b",
+                    "primary-fixed": "#3c3b44",
+                    "on-tertiary-fixed": "#002113",
+                    "primary": "#c0c1ff",
+                    "surface-container": "#1c1f2a",
+                    "tertiary": "#4edea3",
+                    "surface-container-high": "#262a35",
+                    "on-secondary": "#003640",
+                    "surface-bright": "#353944"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "16px",
+                    "lg": "40px",
+                    "md": "24px",
+                    "gutter": "24px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "margin-desktop": "32px",
+                    "margin-mobile": "16px",
+                    "xl": "64px"
+            },
+            "fontFamily": {
+                    "label-caps": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Geist"],
+                    "body-sm": ["Inter"],
+                    "code-md": ["JetBrains Mono"],
+                    "headline-xl": ["Geist"],
+                    "headline-lg": ["Geist"]
             }
+          }
+        }
+      }
+    </script>
+<style>
+        @keyframes fade-slide-up {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in-up {
+            animation: fade-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(78, 222, 163, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(78, 222, 163, 0.6); }
+        }
+
+        .btn-pulse-glow {
+            animation: pulse-glow 2.5s infinite;
+        }
+
+        .glass-panel {
+            background-color: rgba(19, 27, 46, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+        }
+        
+        .glass-panel:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(192, 193, 255, 0.15);
+        }
+
+        .animated-gradient-border {
+            position: relative;
+            background-clip: padding-box;
+            border: 1px solid transparent;
+        }
+        .animated-gradient-border::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -1px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #c0c1ff, #4edea3, #4cd7f6, #c0c1ff);
+            background-size: 300% 100%;
+            animation: gradient-shift 4s ease infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .bg-overlay {
+            background: radial-gradient(circle at 50% 50%, transparent 0%, #0B0F19 80%);
+            pointer-events: none;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(19, 27, 46, 0.5); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2); 
+        }
+        
+        .nav-btn-icon-hover:hover .material-symbols-outlined {
+            transform: translateX(4px);
+        }
+        
+        .loading-state {
+            position: relative;
+            pointer-events: none;
+            color: transparent !important;
+        }
+        .loading-state::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin-top: -10px;
+            margin-left: -10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col relative overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+
+<div class="fixed inset-0 z-[-1] bg-overlay"></div>
+
+<!-- TopAppBar Component -->
+<header class="flex justify-between items-center px-margin-desktop py-4 z-50 fixed top-0 w-full border-b border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.1)] bg-surface/80 backdrop-blur-xl animate-fade-in-up">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-[32px] transition-transform duration-300 hover:rotate-12 hover:scale-110">terminal</span>
+<span class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight hidden md:block">DevFlow AI</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary tracking-tight md:hidden">DevFlow</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex items-center gap-2 bg-tertiary-container/20 border border-tertiary-container px-3 py-1 rounded-full btn-pulse-glow">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-tertiary"></span>
+</span>
+<span class="font-label-caps text-label-caps text-tertiary">Pipeline Active</span>
+</div>
+<button id="generateBtn" class="animated-gradient-border bg-surface-dim hover:bg-surface px-4 py-2 rounded-lg font-label-caps text-label-caps text-on-surface transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 btn-pulse-glow" onclick="triggerPostGeneration()">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span id="generateBtnText">Generate Post Now</span>
+</button>
+</div>
+</header>
+
+<div class="flex-1 flex pt-[88px] max-w-[1440px] mx-auto w-full relative">
+
+<!-- NavigationDrawer Component -->
+<nav class="hidden md:flex flex-col gap-xs py-md bg-surface-container-low/50 backdrop-blur-md border-r border-white/5 h-[calc(100vh-88px)] w-64 fixed left-0 top-[88px] z-40 animate-fade-in-up delay-100">
+<div class="px-md mb-lg">
+<h2 class="font-label-caps text-label-caps text-tertiary opacity-70 mb-2 transition-opacity hover:opacity-100">NAVIGATION</h2>
+</div>
+<button class="nav-btn text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 mx-2 flex items-center gap-sm px-4 py-3 rounded-lg transition-all duration-200 ease-in-out font-label-caps text-label-caps nav-btn-icon-hover group" id="nav-getting-started" onclick="switchTab('tab-getting-started')">
+<span class="material-symbols-outlined transition-transform duration-300">rocket_launch</span>
+<span>Getting Started</span>
+</button>
+<button class="nav-btn text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 mx-2 flex items-center gap-sm px-4 py-3 rounded-lg transition-all duration-200 ease-in-out font-label-caps text-label-caps nav-btn-icon-hover group" id="nav-integration" onclick="switchTab('tab-integration')">
+<span class="material-symbols-outlined transition-transform duration-300">account_tree</span>
+<span>Integration Vault</span>
+</button>
+<button class="nav-btn bg-primary-container text-on-primary-container rounded-lg mx-2 flex items-center gap-sm px-4 py-3 transition-all duration-200 ease-in-out font-label-caps text-label-caps nav-btn-icon-hover group" id="nav-dashboard" onclick="switchTab('tab-dashboard')">
+<span class="material-symbols-outlined transition-transform duration-300">analytics</span>
+<span>Dashboard &amp; History</span>
+</button>
+</nav>
+
+<!-- Main Content Area -->
+<main class="flex-1 w-full md:ml-64 p-margin-mobile md:p-margin-desktop overflow-y-auto">
+
+<!-- Mobile Nav Pills -->
+<div class="md:hidden flex overflow-x-auto gap-sm mb-lg pb-2 hide-scrollbar animate-fade-in-up delay-100">
+<button class="mob-nav-btn whitespace-nowrap bg-surface-container border border-outline/20 text-on-surface px-4 py-2 rounded-full font-label-caps text-label-caps flex items-center gap-2" id="mob-nav-getting-started" onclick="switchTab('tab-getting-started')">
+<span class="material-symbols-outlined text-sm">rocket_launch</span> Getting Started
+</button>
+<button class="mob-nav-btn whitespace-nowrap bg-surface-container border border-outline/20 text-on-surface px-4 py-2 rounded-full font-label-caps text-label-caps flex items-center gap-2" id="mob-nav-integration" onclick="switchTab('tab-integration')">
+<span class="material-symbols-outlined text-sm">account_tree</span> Vault
+</button>
+<button class="mob-nav-btn whitespace-nowrap bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-label-caps text-label-caps flex items-center gap-2" id="mob-nav-dashboard" onclick="switchTab('tab-dashboard')">
+<span class="material-symbols-outlined text-sm">analytics</span> Dashboard
+</button>
+</div>
+
+<!-- Notification Messages -->
+{% if messages %}
+<div class="mb-6 space-y-2 animate-fade-in-up">
+    {% for message in messages %}
+    <div class="p-4 rounded-xl text-sm font-medium border flex items-center justify-between {% if message.tags == 'success' %}bg-tertiary-container/20 text-tertiary border-tertiary/40{% else %}bg-error-container/20 text-error border-error/40{% endif %}">
+        <span class="flex items-center gap-2">
+            <span class="material-symbols-outlined">check_circle</span> {{ message }}
+        </span>
+        <button onclick="this.parentElement.remove()" class="text-xs opacity-60 hover:opacity-100">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- STEP 1: Getting Started -->
+<div class="tab-content space-y-xl" id="tab-getting-started">
+<div class="text-center max-w-3xl mx-auto pt-lg animate-fade-in-up delay-100">
+<h1 class="font-headline-xl text-headline-xl text-on-surface mb-sm">Turn Your Code into Viral LinkedIn Infographics Automatically</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Connect your workflow. We analyze your commits, generate insights via LLM, and render high-end visuals ready for publishing.</p>
+</div>
+<div class="glass-panel p-lg rounded-xl max-w-2xl mx-auto animate-fade-in-up delay-200">
+<form action="{% url 'save_settings' %}" method="POST" class="space-y-md">
+{% csrf_token %}
+<div class="group">
+<label class="block font-label-caps text-label-caps text-primary mb-xs transition-colors group-hover:text-secondary">Gmail Account</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline transition-colors group-focus-within:text-secondary">mail</span>
+<input class="w-full bg-surface-dim border border-outline/30 rounded-lg py-3 pl-10 pr-4 text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/50 focus:shadow-[0_0_15px_rgba(76,215,246,0.2)] transition-all duration-300 font-body-sm" name="user_email" value="{{ profile.user.email }}" placeholder="dev@example.com" type="email"/>
+</div>
+</div>
+<div class="group">
+<label class="block font-label-caps text-label-caps text-primary mb-xs transition-colors group-hover:text-secondary">GitHub Username</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline transition-colors group-focus-within:text-secondary">code</span>
+<input class="w-full bg-surface-dim border border-outline/30 rounded-lg py-3 pl-10 pr-4 text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/50 focus:shadow-[0_0_15px_rgba(76,215,246,0.2)] transition-all duration-300 font-body-sm" name="github_username" value="{{ profile.github_username }}" placeholder="e.g. porav-cmd" required="" type="text"/>
+</div>
+</div>
+<div class="pt-sm">
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-caps text-label-caps hover:bg-primary-fixed transition-all duration-300 hover:shadow-[0_0_20px_rgba(192,193,255,0.4)] flex items-center justify-center gap-2 relative overflow-hidden group/btn hover:-translate-y-1" type="submit">
+<span class="relative">Continue to Integrations</span>
+<span class="material-symbols-outlined relative transition-transform duration-300 group-hover/btn:translate-x-2">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- STEP 2: Integration Vault -->
+<div class="tab-content space-y-lg" id="tab-integration">
+<h2 class="font-headline-lg text-headline-lg md:font-headline-lg md:text-headline-lg text-on-surface animate-fade-in-up">Integration Vault</h2>
+<form action="{% url 'save_settings' %}" method="POST">
+{% csrf_token %}
+<input type="hidden" name="github_username" value="{{ profile.github_username }}">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- API Keys -->
+<div class="glass-panel p-md rounded-xl space-y-md animate-fade-in-up delay-100">
+<h3 class="font-label-caps text-label-caps text-secondary flex items-center gap-2 mb-sm border-b border-white/5 pb-2">
+<span class="material-symbols-outlined text-sm">key</span> Credentials
+</h3>
+<div class="space-y-xs group">
+<label class="font-code-md text-code-md text-on-surface-variant transition-colors group-hover:text-secondary">Telegram Bot Token</label>
+<div class="flex gap-2">
+<input id="tg_token_input" class="flex-1 bg-surface-container border border-outline/20 rounded-lg px-3 py-2 text-on-surface font-code-md focus:border-secondary focus:ring-2 focus:ring-secondary/50 transition-all duration-300" name="telegram_bot_token" type="password" value="{{ profile.telegram_bot_token|default:'' }}"/>
+<button type="button" onclick="togglePassVisibility('tg_token_input')" class="p-2 rounded-lg border border-outline/20 hover:bg-surface-variant text-outline hover:text-secondary transition-colors" title="Toggle visibility">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<div class="space-y-xs group">
+<label class="font-code-md text-code-md text-on-surface-variant transition-colors group-hover:text-secondary">Telegram Chat ID</label>
+<input class="w-full bg-surface-container border border-outline/20 rounded-lg px-3 py-2 text-on-surface font-code-md focus:border-secondary focus:ring-2 focus:ring-secondary/50 transition-all duration-300" name="telegram_chat_id" type="text" value="{{ profile.telegram_chat_id|default:'' }}"/>
+</div>
+<div class="space-y-xs group">
+<label class="font-code-md text-code-md text-on-surface-variant transition-colors group-hover:text-secondary">Groq API Key</label>
+<input class="w-full bg-surface-container border border-outline/20 rounded-lg px-3 py-2 text-on-surface font-code-md focus:border-secondary focus:ring-2 focus:ring-secondary/50 transition-all duration-300" name="groq_api_key" type="password" value="{{ profile.groq_api_key|default:'' }}"/>
+</div>
+<button type="submit" class="w-full mt-4 bg-primary text-on-primary py-2.5 rounded-lg font-label-caps text-label-caps hover:bg-primary-fixed transition-all duration-300 flex justify-center items-center gap-2">
+<span class="material-symbols-outlined">save</span> Save Credentials
+</button>
+</div>
+
+<!-- Theme Picker -->
+<div class="glass-panel p-md rounded-xl flex flex-col animate-fade-in-up delay-200">
+<h3 class="font-label-caps text-label-caps text-secondary flex items-center gap-2 mb-sm border-b border-white/5 pb-2">
+<span class="material-symbols-outlined text-sm">palette</span> Output Theme
+</h3>
+<div class="grid grid-cols-2 gap-sm flex-1">
+<label class="border-2 {% if profile.cheat_sheet_theme == 'cream_grid' %}border-primary{% else %}border-outline/20{% endif %} rounded-lg overflow-hidden cursor-pointer relative group transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg block">
+<input type="radio" name="cheat_sheet_theme" value="cream_grid" {% if profile.cheat_sheet_theme == 'cream_grid' %}checked{% endif %} class="hidden">
+<div class="h-32 bg-[#F5F5DC] flex flex-col justify-center items-center p-4 relative" style="background-image: radial-gradient(#d1d1b8 1px, transparent 1px); background-size: 10px 10px;">
+<div class="w-3/4 h-2 bg-gray-400/50 rounded mb-2"></div>
+<div class="w-1/2 h-2 bg-gray-400/50 rounded mb-4"></div>
+<div class="w-full h-12 border border-gray-400/30 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-gray-500">bar_chart</span>
+</div>
+</div>
+<div class="p-2 bg-surface-container text-center font-label-caps text-label-caps text-on-surface text-[10px]">Cream Grid Notebook</div>
+</label>
+
+<label class="border-2 {% if profile.cheat_sheet_theme == 'dark_ide' %}border-primary{% else %}border-outline/20{% endif %} rounded-lg overflow-hidden cursor-pointer hover:border-outline/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group block">
+<input type="radio" name="cheat_sheet_theme" value="dark_ide" {% if profile.cheat_sheet_theme == 'dark_ide' %}checked{% endif %} class="hidden">
+<div class="h-32 bg-[#1E1E1E] flex flex-col justify-center items-center p-4">
+<div class="w-full h-20 border border-[#333] rounded bg-[#252526] p-2 flex flex-col gap-1">
+<div class="w-1/2 h-1 bg-[#569CD6] rounded"></div>
+<div class="w-3/4 h-1 bg-[#CE9178] rounded"></div>
+<div class="w-1/3 h-1 bg-[#4EC9B0] rounded"></div>
+</div>
+</div>
+<div class="p-2 bg-surface-container text-center font-label-caps text-label-caps text-on-surface text-[10px] group-hover:text-primary transition-colors">Dark IDE Poster</div>
+</label>
+</div>
+</div>
+</div>
+</form>
+</div>
+
+<!-- STEP 3: Main Dashboard -->
+<div class="tab-content active space-y-lg" id="tab-dashboard">
+
+<!-- Metrics Cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-sm md:gap-md">
+<div class="glass-panel p-md rounded-xl border-t border-t-primary/50 animate-fade-in-up">
+<div class="text-outline font-label-caps text-label-caps mb-1">Total Posts</div>
+<div class="font-headline-lg text-headline-lg text-on-surface">{{ total_posts }}</div>
+<div class="text-tertiary font-code-md text-[12px] flex items-center mt-2 group"><span class="material-symbols-outlined text-[14px] transition-transform duration-300 group-hover:-translate-y-1">arrow_upward</span> Active History</div>
+</div>
+<div class="glass-panel p-md rounded-xl border-t border-t-secondary/50 animate-fade-in-up delay-100">
+<div class="text-outline font-label-caps text-label-caps mb-1">Proj/News Ratio</div>
+<div class="font-headline-lg text-headline-lg text-on-surface">{{ project_posts }}/{{ news_posts }}</div>
+<div class="w-full bg-surface-dim h-1.5 rounded-full mt-3 overflow-hidden flex">
+<div class="bg-tertiary h-full transition-all duration-1000 ease-out" style="width: {% if total_posts > 0 %}{% widthratio project_posts total_posts 100 %}{% else %}50{% endif %}%"></div>
+<div class="bg-secondary h-full transition-all duration-1000 ease-out" style="width: {% if total_posts > 0 %}{% widthratio news_posts total_posts 100 %}{% else %}50{% endif %}%"></div>
+</div>
+</div>
+<div class="glass-panel p-md rounded-xl border-t border-t-primary-container/50 animate-fade-in-up delay-200">
+<div class="text-outline font-label-caps text-label-caps mb-1">Hours Saved</div>
+<div class="font-headline-lg text-headline-lg text-on-surface">24.5</div>
+<div class="text-outline font-code-md text-[12px] mt-2">vs manual writing</div>
+</div>
+<div class="glass-panel p-md rounded-xl border-t border-t-tertiary/50 animate-fade-in-up delay-300">
+<div class="text-outline font-label-caps text-label-caps mb-1">Success Rate</div>
+<div class="font-headline-lg text-headline-lg text-on-surface">100%</div>
+<div class="text-outline font-code-md text-[12px] mt-2">API & Telegram status</div>
+</div>
+</div>
+
+<!-- Stepper & History Split -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<!-- Execution Stepper -->
+<div class="glass-panel p-md rounded-xl lg:col-span-1 h-fit animate-fade-in-up delay-100">
+<h3 class="font-label-caps text-label-caps text-secondary mb-md border-b border-white/5 pb-2">Live Execution Pipeline</h3>
+<div class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-tertiary before:via-primary before:to-surface-variant before:z-0">
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active transition-transform duration-300 hover:scale-[1.02]">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-tertiary bg-surface-dim text-tertiary shadow-[0_0_10px_rgba(78,222,163,0.5)] z-10 relative">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-3 rounded-lg border border-white/5 bg-surface/50 ml-4 md:ml-0 md:mr-4 hover:border-tertiary/50 transition-colors">
+<h4 class="font-label-caps text-label-caps text-on-surface">Fetch GitHub</h4>
+<p class="font-code-md text-[10px] text-tertiary">Active Repo Analysis</p>
+</div>
+</div>
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active transition-transform duration-300 hover:scale-[1.02]">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-tertiary bg-surface-dim text-tertiary shadow-[0_0_10px_rgba(78,222,163,0.5)] z-10 relative">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-3 rounded-lg border border-white/5 bg-surface/50 ml-4 md:ml-0 md:mr-4 hover:border-tertiary/50 transition-colors">
+<h4 class="font-label-caps text-label-caps text-on-surface">LLM Writing</h4>
+<p class="font-code-md text-[10px] text-tertiary">Drafting Post Content</p>
+</div>
+</div>
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group transition-transform duration-300 hover:scale-[1.02]">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-tertiary bg-surface-dim text-tertiary z-10 relative shadow-[0_0_15px_rgba(78,222,163,0.3)]">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-3 rounded-lg border border-white/5 bg-surface/50 ml-4 md:ml-0 md:mr-4 hover:border-tertiary/50 transition-colors">
+<h4 class="font-label-caps text-label-caps text-on-surface">Rendering</h4>
+<p class="font-code-md text-[10px] text-tertiary">Handwritten Cheat Sheet</p>
+</div>
+</div>
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group transition-transform duration-300 hover:scale-[1.02]">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-tertiary bg-surface-dim text-tertiary z-10 relative">
+<span class="material-symbols-outlined text-sm">send</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-3 rounded-lg border border-white/5 bg-surface/50 ml-4 md:ml-0 md:mr-4">
+<h4 class="font-label-caps text-label-caps text-on-surface">Delivering</h4>
+<p class="font-code-md text-[10px] text-tertiary">Sent to Telegram</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Post History Cards -->
+<div class="lg:col-span-2 space-y-md animate-fade-in-up delay-200">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-container-low/30 p-2 rounded-xl backdrop-blur-sm border border-white/5">
+<div class="relative w-full sm:w-64 group/search">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm transition-colors group-focus-within/search:text-primary">search</span>
+<input id="searchInput" onkeyup="filterPosts()" class="w-full bg-surface-dim border-none rounded-lg py-2 pl-9 pr-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:shadow-[0_0_10px_rgba(192,193,255,0.15)] transition-all duration-300" placeholder="Search history..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 hide-scrollbar">
+<button onclick="filterType('ALL')" class="px-3 py-1 rounded-full bg-primary text-on-primary font-label-caps text-[10px] whitespace-nowrap hover:bg-primary-fixed transition-colors">All</button>
+<button onclick="filterType('Project')" class="px-3 py-1 rounded-full border border-tertiary text-tertiary hover:bg-tertiary/10 font-label-caps text-[10px] whitespace-nowrap transition-colors">Projects</button>
+<button onclick="filterType('News')" class="px-3 py-1 rounded-full border border-secondary text-secondary hover:bg-secondary/10 font-label-caps text-[10px] whitespace-nowrap transition-colors">News</button>
+</div>
+</div>
+
+<!-- Loop Through Posts -->
+{% for post in posts %}
+<div class="post-card glass-panel rounded-xl overflow-hidden group" data-type="{{ post.post_type }}" data-topic="{{ post.topic|lower }}">
+<div class="flex flex-col md:flex-row">
+<div class="md:w-1/3 bg-black relative min-h-[160px] overflow-hidden flex items-center justify-center border-r border-white/5">
+    {% if post.image_path %}
+    <div class="w-full h-full bg-cover bg-center p-3 font-code-md text-[10px] text-tertiary flex flex-col justify-center items-center text-center bg-surface-dim">
+        <span class="material-symbols-outlined text-primary text-3xl mb-1">image</span>
+        <span>Handwritten Cheat Sheet</span>
+        <span class="text-outline text-[9px] mt-1">{{ post.image_path }}</span>
+    </div>
+    {% else %}
+    <div class="w-full h-full flex flex-col items-center justify-center text-outline font-code-md text-[10px]">
+        <span class="material-symbols-outlined text-2xl mb-1">description</span>
+        Text Only Draft
+    </div>
+    {% endif %}
+    <div class="absolute top-2 left-2 {% if post.post_type == 'Project' %}bg-tertiary/20 border-tertiary text-tertiary{% else %}bg-secondary/20 border-secondary text-secondary{% endif %} border px-2 py-0.5 rounded font-label-caps text-[10px] flex items-center gap-1 backdrop-blur-md">
+        <span class="material-symbols-outlined text-[12px]">{% if post.post_type == 'Project' %}code_blocks{% else %}newspaper{% endif %}</span> {{ post.post_type }}
+    </div>
+</div>
+<div class="p-md flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-body-md font-semibold text-on-surface group-hover:text-primary transition-colors duration-300">{{ post.topic }}</h4>
+<span class="text-outline font-code-md text-[10px]">{{ post.date_posted }}</span>
+</div>
+<div class="bg-surface-dim p-3 rounded-lg border border-outline/10 font-code-md text-[12px] text-on-surface-variant line-clamp-3 whitespace-pre-wrap">
+{{ post.final_text }}
+</div>
+</div>
+</div>
+</div>
+</div>
+{% empty %}
+<div class="glass-panel p-lg text-center rounded-xl text-outline font-code-md">
+    No posts found in database yet. Click "Generate Post Now" to create your first post!
+</div>
+{% endfor %}
+
+</div>
+</div>
+</div>
+</main>
+</div>
+
+<!-- Footer JSON Component -->
+<footer class="w-full py-lg flex justify-between px-margin-desktop mt-xl bg-transparent border-t border-white/5 relative z-10 animate-fade-in-up delay-300">
+<span class="font-body-sm text-body-sm text-outline">© 2026 DevFlow AI. Autonomous Developer Content Platform.</span>
+<div class="flex gap-4">
+<a class="font-body-sm text-body-sm text-outline hover:text-secondary transition-all" href="#">Documentation</a>
+<a class="font-body-sm text-body-sm text-outline hover:text-secondary transition-all" href="#">API Status</a>
+</div>
+</footer>
+
+<script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            setTimeout(() => {
+                document.getElementById(tabId).classList.add('active');
+            }, 50);
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = 'nav-btn text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 mx-2 flex items-center gap-sm px-4 py-3 rounded-lg transition-all duration-200 ease-in-out font-label-caps text-label-caps nav-btn-icon-hover group';
+            });
+
+            document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+                btn.className = 'mob-nav-btn whitespace-nowrap bg-surface-container border border-outline/20 text-on-surface px-4 py-2 rounded-full font-label-caps text-label-caps flex items-center gap-2';
+            });
+
+            let activeBtnId = 'nav-' + tabId.replace('tab-', '');
+            let activeBtn = document.getElementById(activeBtnId);
+            if(activeBtn) {
+                activeBtn.className = 'nav-btn bg-primary-container text-on-primary-container rounded-lg mx-2 flex items-center gap-sm px-4 py-3 transition-all duration-200 ease-in-out font-label-caps text-label-caps nav-btn-icon-hover group';
+            }
+
+            let mobActiveBtnId = 'mob-nav-' + tabId.replace('tab-', '');
+            let mobActiveBtn = document.getElementById(mobActiveBtnId);
+            if(mobActiveBtn) {
+                mobActiveBtn.className = 'mob-nav-btn whitespace-nowrap bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-label-caps text-label-caps flex items-center gap-2';
+            }
+        }
+
+        function togglePassVisibility(id) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+            } else {
+                input.type = 'password';
+            }
+        }
+
+        function filterPosts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.post-card').forEach(card => {
+                const topic = card.getAttribute('data-topic') || '';
+                if (topic.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function filterType(type) {
+            document.querySelectorAll('.post-card').forEach(card => {
+                const pType = card.getAttribute('data-type');
+                if (type === 'ALL' || pType === type) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         }
 
         function triggerPostGeneration() {
             const btn = document.getElementById('generateBtn');
-            const icon = document.getElementById('btnIcon');
-            const text = document.getElementById('btnText');
+            const text = document.getElementById('generateBtnText');
 
-            btn.disabled = true;
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
-            icon.className = 'fa-solid fa-spinner fa-spin';
-            text.innerText = 'Generating Post...';
+            btn.classList.add('loading-state');
+            text.innerText = 'Generating...';
 
             fetch('/generate/')
                 .then(res => res.json())
@@ -314,9 +627,7 @@
                     alert('❌ Request failed: ' + err);
                 })
                 .finally(() => {
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    icon.className = 'fa-solid fa-bolt';
+                    btn.classList.remove('loading-state');
                     text.innerText = 'Generate Post Now';
                 });
         }
