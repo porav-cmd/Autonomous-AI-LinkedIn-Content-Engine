@@ -177,11 +177,12 @@ def fetch_news_node(state: TopicState) -> TopicState:
 
 def generate_news_topic_node(state: TopicState) -> TopicState:
     past_topics = list(Post.objects.filter(post_type="News").values_list("topic", flat=True))
+    past_topics_text = "\n".join(past_topics)
     prompt = f"""
 Create a developer angle for this news story.
 TITLE: {state['story_title']}
 CONTENT: {state['story_content']}
-PAST TOPICS: {"\n".join(past_topics)}
+PAST TOPICS: {past_topics_text}
 
 Return a JSON object with exact keys "topic" and "tone". Tone must be 'first_person' or 'neutral'.
 """
