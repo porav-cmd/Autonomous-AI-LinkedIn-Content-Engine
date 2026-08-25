@@ -23,7 +23,10 @@ from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
 
-from myapp.models import Post
+from myapp.models import Post, UserProfile
+
+def get_active_profile():
+    return UserProfile.objects.first()
 
 from github import (
     get_repo_files,
@@ -98,9 +101,11 @@ def select_post_type_node(state: TopicState) -> TopicState:
     return {**state, "post_type": final_type}
 
 def github_topic_node(state: TopicState) -> TopicState:
-    repos = get_user_repos()
+    profile = get_active_profile()
+    gh_username = profile.github_username if (profile and profile.github_username) else "porav-cmd"
+    repos = get_user_repos(gh_username)
     selected_repo = random.choice(repos) if repos else "DevFlow"
-    print(f"\n[GitHub Node] Selected repository: '{selected_repo}' from repos: {repos}")
+    print(f"\n[GitHub Node] Selected repository: '{selected_repo}' for user '{gh_username}' from repos: {repos}")
     
     files = get_repo_files(selected_repo)
     filtered_files = filter_meaningful_files(files)
@@ -475,8 +480,10 @@ def send_final_telegram_node(state: TopicState) -> TopicState:
     return {**state, "final_text": draft_text}
 
 def save_node(state: TopicState) -> TopicState:
+    profile = get_active_profile()
     post_type = state["post_type"].capitalize()
     post = Post.objects.create(
+        user=profile.user if profile else None,
         topic=state["topic"],
         post_type=post_type,
         final_text=state["draft_text"],
@@ -484,7 +491,8 @@ def save_node(state: TopicState) -> TopicState:
         image_type="FREE" if state.get("image_choice") == "yes" else "NONE",
         image_path=state.get("image_path", ""),
     )
-    print(f"Post saved in database with ID: {post.id}")
+    user_str = profile.user.username if profile else "Anonymous"
+    print(f"Post saved in database with ID: {post.id} for user: {user_str}")
     return {**state, "final_text": state["draft_text"]}
 
 # ============================================================
