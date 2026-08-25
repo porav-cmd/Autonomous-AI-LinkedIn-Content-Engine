@@ -31,13 +31,25 @@ def dashboard_view(request):
 def save_settings_view(request):
     if request.method == 'POST':
         user, profile = get_or_create_default_user()
+        
+        user_email = request.POST.get('user_email', '').strip()
+        if user_email:
+            user.email = user_email
+            user.save()
+
         profile.github_username = request.POST.get('github_username', 'porav-cmd').strip()
-        profile.telegram_bot_token = request.POST.get('telegram_bot_token', '').strip()
-        profile.telegram_chat_id = request.POST.get('telegram_chat_id', '').strip()
-        profile.groq_api_key = request.POST.get('groq_api_key', '').strip()
-        profile.cheat_sheet_theme = request.POST.get('cheat_sheet_theme', 'cream_grid').strip()
+        
+        if 'telegram_bot_token' in request.POST:
+            profile.telegram_bot_token = request.POST.get('telegram_bot_token', '').strip()
+        if 'telegram_chat_id' in request.POST:
+            profile.telegram_chat_id = request.POST.get('telegram_chat_id', '').strip()
+        if 'groq_api_key' in request.POST:
+            profile.groq_api_key = request.POST.get('groq_api_key', '').strip()
+        if 'cheat_sheet_theme' in request.POST:
+            profile.cheat_sheet_theme = request.POST.get('cheat_sheet_theme', 'cream_grid').strip()
+            
         profile.save()
-        messages.success(request, 'Settings saved successfully!')
+        messages.success(request, 'Profile & Settings updated successfully!')
     return redirect('dashboard')
 
 def trigger_generate_view(request):

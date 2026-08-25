@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFlow AI - Developer Content Engine Dashboard</title>
+    <title>DevFlow AI - Autonomous Developer Content Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -11,23 +11,36 @@
 
     <!-- Top Navigation Header -->
     <nav class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center space-x-3">
-            <div class="bg-indigo-600 p-2 rounded-lg text-white">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchStep(3)">
+            <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg">
                 <i class="fa-solid fa-robot text-xl"></i>
             </div>
             <div>
-                <h1 class="text-xl font-bold text-white tracking-wide">DevFlow AI Engine</h1>
+                <h1 class="text-xl font-extrabold text-white tracking-wide">DevFlow AI</h1>
                 <p class="text-xs text-slate-400">Autonomous Developer Content Platform</p>
             </div>
         </div>
 
-        <div class="flex items-center space-x-4">
-            <button id="generateBtn" onclick="triggerPostGeneration()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg transition flex items-center space-x-2">
+        <!-- Navigation Tabs -->
+        <div class="flex items-center space-x-2 bg-slate-900 p-1.5 rounded-xl border border-slate-700 text-sm font-medium">
+            <button onclick="switchStep(1)" id="tabStep1" class="px-4 py-2 rounded-lg transition text-slate-400 hover:text-white">
+                <i class="fa-solid fa-user-plus mr-1.5"></i> 1. Account
+            </button>
+            <button onclick="switchStep(2)" id="tabStep2" class="px-4 py-2 rounded-lg transition text-slate-400 hover:text-white">
+                <i class="fa-solid fa-key mr-1.5"></i> 2. Integrations
+            </button>
+            <button onclick="switchStep(3)" id="tabStep3" class="px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm">
+                <i class="fa-solid fa-layer-group mr-1.5"></i> 3. Dashboard
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button id="generateBtn" onclick="triggerPostGeneration()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg transition flex items-center space-x-2">
                 <i class="fa-solid fa-bolt" id="btnIcon"></i>
                 <span id="btnText">Generate Post Now</span>
             </button>
-            <a href="/admin/" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-lg font-medium text-sm transition">
-                <i class="fa-solid fa-user-shield mr-1"></i> Admin Panel
+            <a href="/admin/" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3.5 py-2.5 rounded-xl font-medium text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-user-shield"></i> Admin
             </a>
         </div>
     </nav>
@@ -35,135 +48,218 @@
     <!-- Main Container -->
     <div class="max-w-7xl mx-auto px-6 py-8">
 
-        <!-- Stat Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-slate-400 text-sm font-medium">Total Posts Generated</span>
-                    <i class="fa-solid fa-layer-group text-indigo-400 text-lg"></i>
-                </div>
-                <div class="text-3xl font-extrabold text-white">{{ total_posts }}</div>
-                <p class="text-xs text-slate-500 mt-1">Saved in database</p>
+        <!-- Notification Banner -->
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl text-sm font-medium border flex items-center justify-between {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20{% else %}bg-amber-500/10 text-amber-400 border-amber-500/20{% endif %}">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> {{ message }}
+                </span>
+                <button onclick="this.parentElement.remove()" class="text-xs opacity-60 hover:opacity-100">&times;</button>
             </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-slate-400 text-sm font-medium">Project Walkthroughs</span>
-                    <i class="fa-solid fa-code-branch text-emerald-400 text-lg"></i>
+        <!-- STEP 1: LANDING & ACCOUNT SETUP -->
+        <div id="step1View" class="hidden max-w-2xl mx-auto py-8">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-xl">
+                <div class="text-center mb-8">
+                    <div class="inline-flex p-3 bg-indigo-500/10 text-indigo-400 rounded-2xl mb-3 border border-indigo-500/20">
+                        <i class="fa-solid fa-rocket text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-white">Step 1: Get Started with DevFlow</h2>
+                    <p class="text-sm text-slate-400 mt-1">Connect your Gmail and GitHub username to start analyzing repositories.</p>
                 </div>
-                <div class="text-3xl font-extrabold text-white">{{ project_posts }}</div>
-                <p class="text-xs text-slate-500 mt-1">GitHub repo analysis</p>
-            </div>
 
-            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-slate-400 text-sm font-medium">News & Tech Trends</span>
-                    <i class="fa-solid fa-newspaper text-amber-400 text-lg"></i>
-                </div>
-                <div class="text-3xl font-extrabold text-white">{{ news_posts }}</div>
-                <p class="text-xs text-slate-500 mt-1">HackerNews developer updates</p>
+                <form action="{% url 'save_settings' %}" method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Gmail / Email Address</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                            <input type="email" name="user_email" value="{{ profile.user.email }}" placeholder="developer@gmail.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">GitHub Username</label>
+                        <div class="relative">
+                            <i class="fa-brands fa-github absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                            <input type="text" name="github_username" value="{{ profile.github_username }}" placeholder="porav-cmd" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition" required>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">DevFlow will scan your public repositories to generate architecture posts.</p>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="button" onclick="switchStep(2)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-semibold text-sm transition flex items-center gap-2">
+                            Next: Setup Integrations <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- STEP 2: INTEGRATION VAULT (Telegram & Groq Keys) -->
+        <div id="step2View" class="hidden max-w-2xl mx-auto py-8">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-xl">
+                <div class="text-center mb-8">
+                    <div class="inline-flex p-3 bg-purple-500/10 text-purple-400 rounded-2xl mb-3 border border-purple-500/20">
+                        <i class="fa-solid fa-key text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-white">Step 2: Integration Vault</h2>
+                    <p class="text-sm text-slate-400 mt-1">Configure your Telegram Bot and Groq API Key for delivery & generation.</p>
+                </div>
+
+                <form action="{% url 'save_settings' %}" method="POST" class="space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="github_username" value="{{ profile.github_username }}">
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Telegram Bot Token</label>
+                        <div class="relative">
+                            <i class="fa-brands fa-telegram absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                            <input type="password" name="telegram_bot_token" value="{{ profile.telegram_bot_token|default:'' }}" placeholder="8686549844:AAEgB3UD..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Telegram Chat ID</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-comments absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                            <input type="text" name="telegram_chat_id" value="{{ profile.telegram_chat_id|default:'' }}" placeholder="1875595995" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Groq API Key</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-brain absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                            <input type="password" name="groq_api_key" value="{{ profile.groq_api_key|default:'' }}" placeholder="gsk_..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Infographic Cheat Sheet Theme</label>
+                        <select name="cheat_sheet_theme" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+                            <option value="cream_grid" {% if profile.cheat_sheet_theme == 'cream_grid' %}selected{% endif %}>Cream Notebook Grid Paper</option>
+                            <option value="dark_ide" {% if profile.cheat_sheet_theme == 'dark_ide' %}selected{% endif %}>Dark IDE Poster</option>
+                        </select>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4">
+                        <button type="button" onclick="switchStep(1)" class="text-slate-400 hover:text-white text-sm font-medium">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Back
+                        </button>
+                        <button type="submit" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition">
+                            Save Credentials & Open Dashboard
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- STEP 3: MAIN DASHBOARD & POST HISTORY GALLERY -->
+        <div id="step3View" class="space-y-8">
             
-            <!-- Left 2 Cols: Post History & Infographic Gallery -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-photo-film text-indigo-400"></i> Recent Posts & Infographics
-                    </h2>
-                    <span class="text-xs text-slate-400">Showing last 15 posts</span>
-                </div>
-
-                {% for post in posts %}
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-md hover:border-slate-600 transition">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center space-x-2">
-                            {% if post.post_type == 'Project' %}
-                            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-500/20">
-                                <i class="fa-solid fa-code mr-1"></i> Project
-                            </span>
-                            {% else %}
-                            <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-2.5 py-1 rounded-full border border-amber-500/20">
-                                <i class="fa-solid fa-newspaper mr-1"></i> News
-                            </span>
-                            {% endif %}
-                            <span class="text-xs text-slate-400">{{ post.date_posted }}</span>
+            <!-- Stat Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-800/80 backdrop-blur border border-slate-700/80 p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Posts Generated</span>
+                        <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
+                            <i class="fa-solid fa-layer-group text-lg"></i>
                         </div>
-                        <span class="text-xs text-slate-500 font-mono">ID: #{{ post.id }}</span>
                     </div>
+                    <div class="text-3xl font-extrabold text-white">{{ total_posts }}</div>
+                    <p class="text-xs text-slate-500 mt-1">Saved in database & sent to Telegram</p>
+                </div>
 
-                    <h3 class="text-lg font-bold text-slate-100 mb-2">{{ post.topic }}</h3>
-
-                    <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-800 mb-4 text-xs text-slate-300 font-mono whitespace-pre-wrap max-h-36 overflow-y-auto leading-relaxed">
-{{ post.final_text }}
-                    </div>
-
-                    {% if post.image_path %}
-                    <div class="flex items-center justify-between bg-slate-900 p-3 rounded-lg border border-slate-800">
-                        <div class="flex items-center space-x-3">
-                            <i class="fa-solid fa-file-image text-indigo-400 text-xl"></i>
-                            <div>
-                                <p class="text-xs font-semibold text-slate-200">Handwritten Infographic Cheat Sheet</p>
-                                <p class="text-xs text-slate-500">{{ post.image_path }}</p>
-                            </div>
+                <div class="bg-slate-800/80 backdrop-blur border border-slate-700/80 p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Project Walkthroughs</span>
+                        <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                            <i class="fa-solid fa-code-branch text-lg"></i>
                         </div>
-                        <span class="text-xs bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded">Generated</span>
                     </div>
-                    {% endif %}
+                    <div class="text-3xl font-extrabold text-white">{{ project_posts }}</div>
+                    <p class="text-xs text-slate-500 mt-1">GitHub repository code analysis</p>
                 </div>
-                {% empty %}
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center text-slate-400">
-                    <i class="fa-solid fa-inbox text-4xl mb-3 text-slate-500"></i>
-                    <p>No generated posts found in database yet.</p>
+
+                <div class="bg-slate-800/80 backdrop-blur border border-slate-700/80 p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">News & Tech Trends</span>
+                        <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg">
+                            <i class="fa-solid fa-newspaper text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold text-white">{{ news_posts }}</div>
+                    <p class="text-xs text-slate-500 mt-1">HackerNews developer updates</p>
                 </div>
-                {% endfor %}
             </div>
 
-            <!-- Right Col: User Integration Vault Settings -->
+            <!-- Post History & Gallery -->
             <div class="space-y-6">
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-md">
-                    <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-key text-indigo-400"></i> Integration Credentials Vault
-                    </h2>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-photo-film text-indigo-400"></i> Generated Post History & Cheat Sheets
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">All drafts, metrics, and handwritten cheat sheet images</p>
+                    </div>
+                    <span class="text-xs bg-slate-800 text-slate-400 px-3 py-1.5 rounded-lg border border-slate-700">Showing last 15 posts</span>
+                </div>
 
-                    <form action="{% url 'save_settings' %}" method="POST" class="space-y-4">
-                        {% csrf_token %}
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1">GitHub Username</label>
-                            <input type="text" name="github_username" value="{{ profile.github_username }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
-                            <p class="text-xs text-slate-500 mt-1">Used to scan public repositories for project walk-throughs.</p>
+                <div class="grid grid-cols-1 gap-6">
+                    {% for post in posts %}
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-md hover:border-slate-600 transition">
+                        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                            <div class="flex items-center space-x-2">
+                                {% if post.post_type == 'Project' %}
+                                <span class="bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-500/20">
+                                    <i class="fa-solid fa-code mr-1"></i> Project
+                                </span>
+                                {% else %}
+                                <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">
+                                    <i class="fa-solid fa-newspaper mr-1"></i> News
+                                </span>
+                                {% endif %}
+                                <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1"></i> {{ post.date_posted }}</span>
+                            </div>
+                            <span class="text-xs text-slate-500 font-mono">ID: #{{ post.id }}</span>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1">Telegram Bot Token</label>
-                            <input type="password" name="telegram_bot_token" value="{{ profile.telegram_bot_token|default:'' }}" placeholder="8686549844:AAEg..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                        <h3 class="text-lg font-bold text-slate-100 mb-3">{{ post.topic }}</h3>
+
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-4 text-xs text-slate-300 font-mono whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed">
+{{ post.final_text }}
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1">Telegram Chat ID</label>
-                            <input type="text" name="telegram_chat_id" value="{{ profile.telegram_chat_id|default:'' }}" placeholder="1875595995" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                        {% if post.image_path %}
+                        <div class="flex items-center justify-between bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg">
+                                    <i class="fa-solid fa-file-image text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-200">Handwritten Engineering Cheat Sheet</p>
+                                    <p class="text-xs text-slate-500 font-mono">{{ post.image_path }}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-3 py-1.5 rounded-lg font-medium">
+                                Delivered to Telegram
+                            </span>
                         </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1">Groq API Key</label>
-                            <input type="password" name="groq_api_key" value="{{ profile.groq_api_key|default:'' }}" placeholder="gsk_..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1">Cheat Sheet Theme</label>
-                            <select name="cheat_sheet_theme" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
-                                <option value="cream_grid" {% if profile.cheat_sheet_theme == 'cream_grid' %}selected{% endif %}>Cream Notebook Grid Paper</option>
-                                <option value="dark_ide" {% if profile.cheat_sheet_theme == 'dark_ide' %}selected{% endif %}>Dark IDE Poster</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg text-sm transition mt-2">
-                            Save Credentials
-                        </button>
-                    </form>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-12 text-center text-slate-400">
+                        <i class="fa-solid fa-inbox text-4xl mb-3 text-slate-500"></i>
+                        <p class="text-base font-semibold text-slate-300">No generated posts found in database yet.</p>
+                        <p class="text-xs text-slate-500 mt-1">Click "Generate Post Now" above to create your first post!</p>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
@@ -171,8 +267,29 @@
 
     </div>
 
-    <!-- JavaScript for Instant Post Generation Trigger -->
+    <!-- Multi-Step Navigation & AJAX Script -->
     <script>
+        function switchStep(stepNum) {
+            document.getElementById('step1View').classList.add('hidden');
+            document.getElementById('step2View').classList.add('hidden');
+            document.getElementById('step3View').classList.add('hidden');
+
+            document.getElementById('tabStep1').className = "px-4 py-2 rounded-lg transition text-slate-400 hover:text-white";
+            document.getElementById('tabStep2').className = "px-4 py-2 rounded-lg transition text-slate-400 hover:text-white";
+            document.getElementById('tabStep3').className = "px-4 py-2 rounded-lg transition text-slate-400 hover:text-white";
+
+            if (stepNum === 1) {
+                document.getElementById('step1View').classList.remove('hidden');
+                document.getElementById('tabStep1').className = "px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm";
+            } else if (stepNum === 2) {
+                document.getElementById('step2View').classList.remove('hidden');
+                document.getElementById('tabStep2').className = "px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm";
+            } else {
+                document.getElementById('step3View').classList.remove('hidden');
+                document.getElementById('tabStep3').className = "px-4 py-2 rounded-lg transition bg-indigo-600 text-white shadow-sm";
+            }
+        }
+
         function triggerPostGeneration() {
             const btn = document.getElementById('generateBtn');
             const icon = document.getElementById('btnIcon');
