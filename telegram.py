@@ -62,57 +62,42 @@ def get_latest_update_id():
 
     return latest_update_id
 
-def wait_for_reply(offset=None):
+def wait_for_reply(offset=None, max_wait_seconds=60):
     if offset is None:
         latest_update_id = get_latest_update_id()
         offset = 0 if latest_update_id is None else latest_update_id + 1
 
     url = f"{BASE_URL}/getUpdates"
+    start_time = time.time()
 
-    while True:
+    while time.time() - start_time < max_wait_seconds:
+        try:
+            params = {
+                "offset": offset,
+                "timeout": 5
+            }
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            updates = data.get("result", [])
 
-        params = {
-            "offset": offset,
-            "timeout": 10
-        }
+            if not updates:
+                print(f"Waiting for Telegram reply ({int(max_wait_seconds - (time.time() - start_time))}s remaining)...")
+                time.sleep(2)
+                continue
 
-        response = requests.get(
-            url,
-            params=params
-        )
-
-        data = response.json()
-
-        updates = data["result"]
-        if not updates:
-
-            print("Waiting for reply...")
-
+            for item in updates:
+                update_id = item["update_id"]
+                print("Received update:", update_id)
+                if "message" in item and "text" in item["message"]:
+                    user_text = item["message"]["text"].strip()
+                    print(f"User replied: {user_text}")
+                    return user_text
+        except Exception as e:
+            print(f"Telegram polling warning ({e}). Retrying...")
             time.sleep(2)
 
-            continue
-
-        for item in updates:
-
-            update_id = item["update_id"]
-
-            print("Received update:", update_id)
-
-            if "message" not in item:
-                offset = update_id + 1
-                continue
-
-            message = item["message"]
-
-            if "text" not in message:
-                offset = update_id + 1
-                continue
-
-            text = message["text"]
-
-            print("User replied:", text)
-
-            return text
+    print(f"\n[Telegram] No reply received within {max_wait_seconds}s. Auto-selecting 'yes' for image generation...")
+    return "yes"
 
 
 def main():
